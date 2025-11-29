@@ -2,8 +2,8 @@ name: Build and release Aseprite
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 3 * * *' # UTC 每天 03:00 触发，相当于北京时间 11:00
+  # schedule:
+  #   - cron: '0 3 * * *' # UTC 每天 03:00 触发，相当于北京时间 11:00
 env:
   BUILD_TYPE: Release
 
