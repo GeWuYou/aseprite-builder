@@ -2,8 +2,9 @@ name: Build and release Aseprite
 
 on:
   workflow_dispatch:
-  # schedule:
-  #   - cron: '0 3 * * *' # UTC 每天 03:00 触发，相当于北京时间 11:00
+  schedule:
+    - cron: '0 3 * * *' # UTC 每天 03:00 触发
+
 env:
   BUILD_TYPE: Release
 
@@ -24,7 +25,7 @@ jobs:
           match: Aseprite-.*?-Source.zip
 
   create-release:
-    name: Create GitHub Release
+    name: Create GitHub Release (metadata only)
     runs-on: ubuntu-latest
     needs: fetch-aseprite-info
     permissions:
@@ -46,7 +47,7 @@ jobs:
     needs: create-release
     if: needs.create-release.outputs.release-tag != ''
     permissions:
-      contents: write
+      contents: read
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -132,11 +133,9 @@ jobs:
         working-directory: aseprite/build/bin
         run: 7z -tzip a Aseprite-${{ needs.create-release.outputs.release-tag }}-${{ runner.os }}.zip *
 
-      - name: Upload release asset
-        uses: svenstaro/upload-release-action@v2
+      # 上传为 workflow artifact
+      - name: Upload workflow artifact (retain for 7 days)
+        uses: actions/upload-artifact@v4
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: aseprite/build/bin/Aseprite-${{ needs.create-release.outputs.release-tag }}-${{ runner.os }}.zip
-          asset_name: Aseprite-${{ needs.create-release.outputs.release-tag }}-${{ runner.os }}.zip
-          tag: ${{ needs.create-release.outputs.release-tag }}
-          overwrite: true
+          name: Aseprite-${{ needs.create-release.outputs.release-tag }}-${{ runner.os }}
+          path: aseprite/build/bin/Aseprite-${{ needs.create-release.outputs.release-tag }}-${{ runner.os }}.zip
